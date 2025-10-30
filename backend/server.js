@@ -49,8 +49,31 @@ app.get('/api/events/:id', async (req, res) => {
     res.status(500).json({ message: 'Error fetching event', error });
   }
 });
+//3. POST /api/events/:id/join - Join an event
+app.post('/api/events/:id/join', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const event = await Event.findById(id);
 
-// 3. POST /api/events - Create an event
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    if (event.currentParticipants >= event.maxParticipants) {
+      return res.status(400).json({ message: 'Event is already full' });
+    }
+
+    event.currentParticipants += 1;
+    const updatedEvent = await event.save();
+
+    res.status(200).json(updatedEvent);
+  } catch (error) {
+    res.status(500).json({ message: 'Error joining event', error });
+  }
+});
+
+
+// 4. POST /api/events - Create an event
 app.post('/api/events', async (req, res) => {
   const { title, description, location, date, maxParticipants } = req.body;
 

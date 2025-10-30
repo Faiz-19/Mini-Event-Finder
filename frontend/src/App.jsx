@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import * as api from './services/api';
-import EventList from './components/EventList';
-import EventDetail from './components/EventDetail';
-import CreateEventForm from './components/CreateEventForm';
+import React, { useState, useEffect } from "react";
+import * as api from "./services/api";
+import EventList from "./components/EventList";
+import EventDetail from "./components/EventDetail";
+import CreateEventForm from "./components/CreateEventForm";
 
 function App() {
-  const [view, setView] = useState('list'); // 'list', 'detail', 'create'
+  const [view, setView] = useState("list"); // 'list', 'detail', 'create'
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   // Fetch all events
-  const fetchEvents = async (location = '') => {
+  const fetchEvents = async (location = "") => {
     try {
       setLoading(true);
       setError(null);
       const res = await api.getEvents(location);
       setEvents(res.data);
     } catch (err) {
-      setError('Failed to fetch events. Please try again later.');
+      setError("Failed to fetch events. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -33,9 +33,9 @@ function App() {
       setError(null);
       const res = await api.getEventById(id);
       setSelectedEvent(res.data);
-      setView('detail');
+      setView("detail");
     } catch (err) {
-      setError('Failed to fetch event details.');
+      setError("Failed to fetch event details.");
     } finally {
       setLoading(false);
     }
@@ -47,15 +47,33 @@ function App() {
       setLoading(true);
       setError(null);
       await api.createEvent(eventData);
-      setView('list'); // Go back to the list
+      setView("list"); // Go back to the list
       await fetchEvents(); // Refresh the list
     } catch (err) {
-      setError('Failed to create event. Please check your inputs.');
+      setError("Failed to create event. Please check your inputs.");
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const handleJoinEvent = async (id) => {
+    try {
+      setError(null);
+      const res = await api.joinEvent(id);
+      const updatedEvent = res.data;
+      setSelectedEvent(updatedEvent); 
+      setEvents(prevEvents => 
+        prevEvents.map(event => 
+          event.id === updatedEvent.id ? updatedEvent : event
+        )
+      );
+      
+    } catch (err) {
+      const message = err.response?.data?.message || 'Failed to join event.';
+      setError(message);
+    }
+  };
+
   // Handle the search/filter (Bonus)
   const handleSearch = (e) => {
     e.preventDefault();
@@ -72,35 +90,45 @@ function App() {
     if (loading) {
       return <div className="text-center p-12 text-gray-400">Loading...</div>;
     }
-    
-    if (error && view !== 'create') {
+
+    if (error && view !== "create") {
       return <div className="text-center p-12 text-red-400">{error}</div>;
     }
 
     switch (view) {
-      case 'detail':
-        return <EventDetail event={selectedEvent} onBack={() => setView('list')} />;
-      case 'create':
+      case "detail":
         return (
-          <CreateEventForm 
-            onSubmit={handleCreateEvent} 
-            onBack={() => setView('list')} 
+          <EventDetail
+            event={selectedEvent}
+            onBack={() => setView("list")}
+            onJoin={handleJoinEvent}
             error={error}
           />
         );
-      case 'list':
+      case "create":
+        return (
+          <CreateEventForm
+            onSubmit={handleCreateEvent}
+            onBack={() => setView("list")}
+            error={error}
+          />
+        );
+      case "list":
       default:
         return (
           <>
             <form className="mb-8 flex gap-2" onSubmit={handleSearch}>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Filter by location (e.g., Solapur)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="flex-grow px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
-              <button type="submit" className="bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition">
+              <button
+                type="submit"
+                className="bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition"
+              >
                 Search
               </button>
             </form>
@@ -116,18 +144,19 @@ function App() {
         <h1 className="text-4xl font-bold text-indigo-400 mb-4 sm:mb-0">
           Event Finder
         </h1>
-        {view === 'list' && (
-          <button 
+        {view === "list" && (
+          <button
             className="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold shadow-lg hover:bg-indigo-500 transition duration-200"
-            onClick={() => { setView('create'); setError(null); }}
+            onClick={() => {
+              setView("create");
+              setError(null);
+            }}
           >
             + Create Event
           </button>
         )}
       </header>
-      <main>
-        {renderView()}
-      </main>
+      <main>{renderView()}</main>
     </div>
   );
 }

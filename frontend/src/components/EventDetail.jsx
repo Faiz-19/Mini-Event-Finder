@@ -1,16 +1,24 @@
 import React from 'react';
 
-const EventDetail = ({ event, onBack }) => {
+const EventDetail = ({ event, onBack, onJoin, error }) => {
   if (!event) return null;
 
   const spotsLeft = event.maxParticipants - event.currentParticipants;
   const progress = (event.currentParticipants / event.maxParticipants) * 100;
+  const isFull = spotsLeft <= 0;
 
   return (
     <div className="bg-gray-800 p-6 sm:p-8 rounded-lg shadow-lg border border-gray-700">
       <h2 className="text-3xl font-bold mb-6 pb-4 border-b border-gray-700 text-indigo-300">
         {event.title}
       </h2>
+
+      {/* Show error from App.jsx (e.g., "Event is full") */}
+      {error && (
+        <div className="mb-4 text-center text-red-400 bg-red-900/20 p-3 rounded-lg">
+          {error}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div>
@@ -44,12 +52,27 @@ const EventDetail = ({ event, onBack }) => {
         {event.description || 'No description provided.'}
       </p>
 
-      <button 
-        className="mt-8 bg-gray-700 text-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-600 transition" 
-        onClick={onBack}
-      >
-        &larr; Back to List
-      </button>
+      {/* --- Action Buttons --- */}
+      <div className="flex items-center gap-4 mt-8">
+        <button 
+          className="bg-gray-700 text-white px-5 py-2 rounded-lg font-semibold hover:bg-gray-600 transition" 
+          onClick={onBack}
+        >
+          &larr; Back to List
+        </button>
+
+        <button 
+          className={`px-6 py-2 rounded-lg font-semibold transition ${
+            isFull 
+              ? 'bg-red-500 text-white cursor-not-allowed' 
+              : 'bg-indigo-600 text-white shadow-lg hover:bg-indigo-500'
+          }`}
+          onClick={() => onJoin(event.id)}
+          disabled={isFull}
+        >
+          {isFull ? 'Event Full' : 'Join Event'}
+        </button>
+      </div>
     </div>
   );
 };

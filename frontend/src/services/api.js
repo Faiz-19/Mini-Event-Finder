@@ -21,3 +21,7 @@ export const getEventById = (id) => {
 export const createEvent = (eventData) => {
   return apiClient.post('/events', eventData);
 };
+
+export const joinEvent = (id) => {
+  return apiClient.post(`/events/${id}/join`);
+};
