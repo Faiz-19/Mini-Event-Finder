@@ -3,7 +3,8 @@ import axios from 'axios';
 // Create an Axios instance
 const apiClient = axios.create({
   // IMPORTANT: Change this to your backend's URL when you deploy!
-  baseURL: 'http://localhost:5001/api', 
+  // baseURL: 'http://localhost:5001/api', 
+  baseURL: 'https://event-finder-backend-qov1.onrender.com', 
   headers: {
     'Content-Type': 'application/json',
   },
